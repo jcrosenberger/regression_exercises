@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
+from sklearn.model_selection import train_test_split
+
 
 # My env module
 import src.env as env
@@ -11,6 +13,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+
+####################################
+###### SQL Query for Server ########
+####################################
 
 def sql_zillow_2017():
     '''
@@ -38,6 +44,10 @@ def sql_zillow_2017():
 
 
 
+##################################################
+###### Initiates data pull from SQL Server #######
+##################################################
+
 def acquire_zillow_2017():
     '''
     This function reads in 2017's zillow data from Codeup database, writes data to
@@ -59,9 +69,14 @@ def acquire_zillow_2017():
     # Cache data
     #    df.to_csv('data/zillow_2017_dropped_nulls.csv')
     
-    
+    df.columns = ['drop', 'bedrooms', 'bathrooms', 'sq_feet', 'tax_value', 'year_built', 'tax_amount', 'fips', 'property_type']
     return df
 
+
+
+###################################################
+###### Cleans zillow sample, handling naans #######
+###################################################
 
 def wrangled_zillow_2017():
     '''
@@ -99,3 +114,48 @@ def wrangled_zillow_2017():
 
 
     return df 
+
+
+
+
+###########################################################################
+#######      Functions for Splitting Data for Machine Learning      #######
+###########################################################################
+
+##############              First Split              ##############
+
+def split(df):
+    '''
+    function to split dataframe into portions for training a model, validating the model, 
+    with the goal of ultimately testing a good model
+    ''' 
+    
+    # splits data into two groups, holding the test variable to the side
+    train_validate, test = train_test_split(df, test_size = 0.2)
+    
+    # splits train_validate into two groups, train and validate
+    train, validate = train_test_split(train_validate, test_size = 0.3)
+    
+    # returns train, validate, and test variables
+    return train, validate, test
+
+
+
+##############              Second Split              ##############
+
+def x_y(df, target):
+    '''
+    This function depends on the split function, being handed a dataframe
+    and the target variable we are seeking to understand through prediction
+    '''
+    
+    x_train = train.drop(columns=[target])
+    y_train = train[target]
+    
+    x_validate = validate.drop(columns=[target])
+    y_validate = validate[target]
+    
+    x_test = test.drop(columns=[target])
+    y_test = test[target]
+    
+    return x_train, y_train, x_validate, y_validate, x_test, y_test
