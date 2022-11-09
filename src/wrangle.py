@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.model_selection import train_test_split
-
+np.random.seed(7)
 
 # My env module
 import src.env as env
@@ -25,7 +25,7 @@ def sql_zillow_2017():
     '''
     sql_query = '''
     
-    SELECT bedroomcnt, bathroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt, yearbuilt, taxamount, fips, propertylandusetypeid
+    SELECT bedroomcnt, bathroomcnt, calculatedfinishedsquarefeet, taxvaluedollarcnt, yearbuilt, taxamount, fips
     FROM properties_2017
     JOIN propertylandusetype USING (propertylandusetypeid)
     WHERE propertylandusetypeid = 261
@@ -69,16 +69,74 @@ def acquire_zillow_2017():
     # Cache data
     #    df.to_csv('data/zillow_2017_dropped_nulls.csv')
     
-    df.columns = ['drop', 'bedrooms', 'bathrooms', 'sq_feet', 'tax_value', 'year_built', 'tax_amount', 'fips', 'property_type']
+    
     return df
 
 
 
-###################################################
-###### Cleans zillow sample, handling naans #######
-###################################################
+####################################################
+############       rename columns       ############
+####################################################
 
-def wrangled_zillow_2017():
+def rename_zillow_columns(df):
+    df = df.rename(columns={'bedroomcnt':'bedrooms', 
+                            'bathroomcnt':'baths', 
+                            'calculatedfinishedsquarefeet':'sq_feet', 
+                            'taxvaluedollarcnt':'tax_value',
+                            'yearbuilt':'year_built',
+                            'taxamount':'tax_amount'})
+    return df
+
+
+
+
+####################################################
+############       handling naans       ############
+####################################################
+
+def deal_with_nulls(df):
+
+    # fills whitespace will Naans
+    df = df.replace(r'^\s*s', np.NaN, regex=True)
+
+    # the columns which we want to drop naan values from
+    naan_drop_columns = ['sq_feet', 'tax_value', 'year_built', 'tax_amount']    
+    
+
+    # drop naans based on the columns identified above
+    df = df.dropna(subset = naan_drop_columns)
+
+    return df
+
+
+####################################################
+#######         cast columns as int          #######
+####################################################
+
+def zillow_columns_to_int(df):
+
+    # renames columns to be more intelligable and able to be referenced
+    # renames columns to be more intelligable and able to be referenced
+    df['bedrooms'] = df['bedrooms'].astype(int) 
+    df['baths'] = df['baths'].astype(int)
+    df['sq_feet'] = df['sq_feet'].astype(int)
+    df['tax_value'] = df['tax_value'].astype(int)
+    df['year_built'] = df['year_built'].astype(int)
+    df['tax_amount'] = df['tax_amount'].astype(int)
+    df['fips'] = df['fips'].astype(int)
+    
+    # way to cast all column elements as integers
+    #df[(list(df.columns))].astype(int) 
+    
+    
+    return df
+
+
+#############################################################
+###### Cleans zillow dataframe using cleaning modules #######
+#############################################################
+
+def clean_zillow_2017():
     '''
     This is a very large dataset and the values can get very wide so we will handle null values by dropping them.
     The process will be to first turn whitespace into null values and then drop rows with null values from columns 
@@ -96,20 +154,18 @@ def wrangled_zillow_2017():
     else:
         df = acquire_zillow_2017()
 
-        
-
-        # fills whitespace will Naans
-        df = df.replace(r'^\s*s', np.NaN, regex=True)
-
-        # the columns which we want to drop naan values from
-        drop_columns = ['calculatedfinishedsquarefeet', 'taxamount', 'yearbuilt', 'taxvaluedollarcnt']
 
 
-        # drop naans based on the columns identified above
-        df = df.dropna(subset = drop_columns)
+    # dataframe which is a representative sample of 30% of the original dataframe
+    # df30 = df.sample(frac = .30)
 
-        # Cache data
-        df.to_csv('data/wrangled_zillow_2017.csv')
+    
+    df = rename_zillow_columns(df)
+    df = deal_with_nulls(df)
+    df = zillow_columns_to_int(df)    
+
+    # Cache data
+    df.to_csv('data/wrangled_zillow_2017.csv')
 
 
 
@@ -148,7 +204,10 @@ def x_y(df, target):
     This function depends on the split function, being handed a dataframe
     and the target variable we are seeking to understand through prediction
     '''
-    
+
+    # calls split function to produce required variables
+    train, validate, test = split(df)
+
     x_train = train.drop(columns=[target])
     y_train = train[target]
     
