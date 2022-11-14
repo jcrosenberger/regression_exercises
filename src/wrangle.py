@@ -89,6 +89,23 @@ def rename_zillow_columns(df):
 
 
 
+#######################################################
+############       handling outliers       ############
+#######################################################
+
+def handle_outliers(df):
+    """Manually handle outliers that do not represent properties likely for 99% of buyers and zillow visitors"""
+    df = df[df.bedrooms <= 6]
+    
+    df = df[df.baths <= 6]
+
+    df = df[df.tax_value < 2_000_000]
+
+    df = df[df.sq_feet < 10000]
+
+    return df
+
+
 
 ####################################################
 ############       handling naans       ############
@@ -163,7 +180,8 @@ def clean_zillow_2017():
     df = rename_zillow_columns(df)
     df = deal_with_nulls(df)
     df = zillow_columns_to_int(df)    
-
+    df = xhandle_outliers(df)
+    
     # Cache data
     df.to_csv('data/wrangled_zillow_2017.csv')
 
