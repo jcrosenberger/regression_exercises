@@ -162,24 +162,26 @@ def clean_zillow_2017(small = False):
 
     # checks to see if wrangled zillow data exists already
     # if it does, then fills df with the stored data
+    # retains "small" variable option
     if os.path.isfile('data/wrangled_zillow_2017.csv'):
 
         df = pd.read_csv('data/wrangled_zillow_2017.csv')
 
+        if small == True:
+            df = df.sample(frac=0.5)
+
+        return df
 
     else:
         df = acquire_zillow_2017()
 
 
 
-    # dataframe which is a representative sample of 30% of the original dataframe
-    # df30 = df.sample(frac = .30)
-
-    
+    # runs functions defined earlier in program which clean up dataframe    
     df = rename_zillow_columns(df)
     df = deal_with_nulls(df)
     df = zillow_columns_to_int(df)    
-    df = xhandle_outliers(df)
+    df = handle_outliers(df)
     
 
     # if a smaller sized sample of the data is sought to be used to conserve computational resources,
