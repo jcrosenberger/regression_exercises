@@ -67,7 +67,7 @@ def acquire_zillow_2017():
     # df = df.isnull().sum()
 
     # Cache data
-    df.to_csv('data/wrangled_zillow_2017.csv')
+    df.to_csv('data/zillow_2017.csv')
     
     return df
 
@@ -189,7 +189,8 @@ def clean_zillow_2017(small = False):
     if small == True:
         df = df.sample(frac=0.5)
 
-
+    # Cache data so future runs of this program go by more quickly
+    df.to_csv('data/zillow_2017.csv')
 
 
     return df 
