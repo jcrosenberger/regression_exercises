@@ -67,8 +67,7 @@ def acquire_zillow_2017():
     # df = df.isnull().sum()
 
     # Cache data
-    #    df.to_csv('data/zillow_2017_dropped_nulls.csv')
-    
+    df.to_csv('data/wrangled_zillow_2017.csv')
     
     return df
 
@@ -153,7 +152,7 @@ def zillow_columns_to_int(df):
 ###### Cleans zillow dataframe using cleaning modules #######
 #############################################################
 
-def clean_zillow_2017():
+def clean_zillow_2017(small = False):
     '''
     This is a very large dataset and the values can get very wide so we will handle null values by dropping them.
     The process will be to first turn whitespace into null values and then drop rows with null values from columns 
@@ -182,8 +181,12 @@ def clean_zillow_2017():
     df = zillow_columns_to_int(df)    
     df = xhandle_outliers(df)
     
-    # Cache data
-    df.to_csv('data/wrangled_zillow_2017.csv')
+
+    # if a smaller sized sample of the data is sought to be used to conserve computational resources,
+    # the small variable can be modified to cut the dataframe down to half its original size
+    if small == True:
+        df = df.sample(frac=0.5)
+
 
 
 
